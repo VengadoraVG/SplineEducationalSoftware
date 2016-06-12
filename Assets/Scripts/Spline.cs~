@@ -1,0 +1,149 @@
+using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
+
+public class Spline : MonoBehaviour {
+    public List<GameObject> Pins;
+
+    public float[] A;
+    public float[] B;
+    public float[] C;
+    public float[] D;
+
+    public float Step = 0.05f;
+
+    private LineRenderer _tiza;
+    public bool IsVertical = false;
+    public bool Unordered = true;
+
+    void Start () {
+        _tiza = GetComponent<LineRenderer>();
+        RepaintAll();
+    }
+
+    void Update () {
+        if (Input.GetKeyDown(KeyCode.Space)) {
+            RepaintAll();
+        }
+    }
+
+    public void Sort () {
+        if (IsVertical) {
+            this.Pins.Sort(delegate (GameObject a, GameObject b) {
+                    return (int) Mathf.Sign(a.transform.position.y - b.transform.position.y);
+                });
+        } else {
+            this.Pins.Sort(delegate (GameObject a, GameObject b) {
+                    return (int) Mathf.Sign(a.transform.position.x - b.transform.position.x);
+                });
+        }
+    }
+
+    private float X (int index) {
+        if (IsVertical) {
+            return Pins[index].transform.position.y;
+        } else {
+            return Pins[index].transform.position.x;
+        }
+    }
+
+    public void PaintThem () {
+        int i=0;
+        List<Vector3> dots = new List<Vector3>();
+
+        for (float x = X(0);
+             x <= X(Pins.Count-1);
+             x += Step) {
+            if (IsVertical) {
+                dots.Add(new Vector3(EvalAt(x), x, Pins[0].transform.position.z-0.05f));
+            } else {
+                dots.Add(new Vector3(x, EvalAt(x), Pins[0].transform.position.z-0.05f));
+            }
+        }
+        _tiza.SetVertexCount(dots.Count);
+        _tiza.SetPositions(dots.ToArray());
+    }
+
+    public float EvalAt (float x) {
+        int i = FindRange(x);
+        return A[i] + B[i] * (x - X(i)) + C[i] * Mathf.Pow(x - X(i), 2) + D[i] * Mathf.Pow(x - X(i), 3);
+    }
+
+    public int FindRange (float x) {
+        for (int i=0; i<Pins.Count-1; i++) {
+            if (X(i) <= x && x <= X(i+1)) {
+                return i;
+            }
+        }
+
+        return Pins.Count - 2;
+    }
+
+    public void ResizeVectors () {
+        int n = Pins.Count;
+        A = new float[n];
+        B = new float[n];
+        C = new float[n];
+        D = new float[n];
+    }
+
+    public void RepaintAll () {
+        Unordered = true; // debugging
+
+        if (Unordered) {
+            this.Sort();
+            this.Unordered = false;
+        }
+
+        UpdateSplineData();
+        PaintThem();
+    }
+
+    public void UpdateSplineData () {
+        int n = Pins.Count;
+        float[] H = new float[n];
+        float[] Alpha = new float[n];
+        this.ResizeVectors();
+
+        if (IsVertical) {
+            for (int i=0; i<n; i++) {
+                A[i] = Pins[i].transform.position.x;
+            }
+        } else {
+            for (int i=0; i<n; i++) {
+                A[i] = Pins[i].transform.position.y;
+            }            
+        }
+
+        for (int i=0; i<n-1; i++) {
+            H[i] = X(i+1) - X(i);
+        }
+
+        for (int i=1; i<n-1; i++) {
+            Alpha[i] = 3/H[i] * (A[i+1] - A[i]) - 3/H[i-1] * (A[i] - A[i-1]);
+        }
+
+        // Solving linear system...
+        float[] L = new float[n]; L[0] = 1;
+        float[] Mu = new float[n]; Mu[0] = 0;
+        float[] Z = new float[n]; Z[0] = 0;
+
+        for (int i=1; i<n-1; i++) {
+            L[i] = 2 * (X(i+1) - X(i-1)) - H[i-1] * Mu[i-1];
+            Mu[i] = H[i]/L[i];
+            Z[i] = (Alpha[i] - H[i-1] * Z[i-1]) / L[i];
+        }
+
+        L[n-1] = 1;
+        Z[n-1] = 0;
+        C[n-1] = 0;
+
+
+
+        for (int i=n-2; i>=0; i--) {
+            C[i] = Z[i] - Mu[i] * C[i+1];
+            B[i] = (A[i+1] - A[i]) / H[i] - H[i] * (C[i+1] + 2 * C[i]) / 3;
+            D[i] = (C[i+1] - C[i]) / (3 * H[i]);
+        }
+    }
+}

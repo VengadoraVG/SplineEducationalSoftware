@@ -1,0 +1,20 @@
+using UnityEngine;
+using System.Collections;
+
+public class PutPin : MonoBehaviour {
+    public GameObject Pin;
+    public GameObject Pizarra;
+
+    private Camera _camera;
+    private GameObject _mouseSelection;
+
+    void Start () {
+        _camera = GameObject.FindGameObjectWithTag(Tags.MainCamera).GetComponent<Camera>();
+    }
+    
+    void Update () {
+        Physics.Raycast(_camera.ScreenPointToRay(Input.mousePosition),
+                        out _mouseSelection.GetComponent<Collider>().gameObject);
+        Debug.Log(_mouseSelection);
+    }
+}
