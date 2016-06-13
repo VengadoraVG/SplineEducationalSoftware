@@ -22,12 +22,12 @@ public class PutPin : MonoBehaviour {
 
         if (Input.GetMouseButtonDown(0) &&
             Physics.Raycast(_camera.ScreenPointToRay(Input.mousePosition), out _hit)) {
-            
+
             PutIt();
 
         }
 
-        
+
         if (Input.GetKeyDown(KeyCode.Space)) {
             _splineSet.RepaintAll();
         }
@@ -37,6 +37,7 @@ public class PutPin : MonoBehaviour {
         GameObject placedPin = Instantiate(PinPrototype);
         placedPin.SetActive(true);
         Pins.Add(placedPin);
-        placedPin.transform.position = _hit.point - new Vector3(0,0,0.09f);        
+        placedPin.transform.position = _hit.point - new Vector3(0,0,0.09f);
+        placedPin.transform.parent = Pizarra.transform;
     }
 }

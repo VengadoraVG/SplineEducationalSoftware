@@ -8,11 +8,14 @@ public class SelectPin : MonoBehaviour {
     public GameObject SelectionGizmos;
 
     private Camera _camera;
+    private UiController _uiController;
 
     void Start () {
         Pins = GetComponent<GameController>().Pins;
         _camera = GameObject.FindGameObjectWithTag(Tags.MainCamera)
             .GetComponent<Camera>();
+        _uiController = GameObject.FindGameObjectWithTag(Tags.GameController)
+            .GetComponent<UiController>();
     }
     
     void Update () {
@@ -28,6 +31,7 @@ public class SelectPin : MonoBehaviour {
     }
 
     public void DeleteSelection () {
+        _uiController.UpdateSelection();
         if (Selection != null) {
             Selection.GetComponent<Pin>()
                 .SplineSet.GetComponent<Spline>().Remove(Selection);
@@ -62,6 +66,8 @@ public class SelectPin : MonoBehaviour {
 
         if (!foundAHit) {
             Selection = null;
+        } else {
+            _uiController.UpdateSelection();
         }
     }        
 }
