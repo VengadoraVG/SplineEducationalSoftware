@@ -66,4 +66,8 @@ public class GameController : MonoBehaviour {
         }
     }
 
+    public void openvideo () {
+        Application.OpenURL((Application.dataPath) + "/test.mp4");
+    }
+
 }

@@ -19,7 +19,7 @@ public class UiController : MonoBehaviour {
         if (_selectionController.Selection != null) {
             txtX.readOnly = txtX.readOnly = false;
             txtX.text = _selectionController.Selection.transform.localPosition.x + "";
-            txtY.text = _selectionController.Selection.transform.localPosition.z + "";
+            txtY.text = _selectionController.Selection.transform.localPosition.y + "";
         } else {
             txtX.readOnly = txtX.readOnly = true;
             txtX.text = "0";
